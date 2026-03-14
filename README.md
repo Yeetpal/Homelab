@@ -294,5 +294,5 @@ No driver conflicts encountered running two NVIDIA GPUs of different generations
 - [ ] Document breakages and resolutions as they occur
 
 ---
-
+*Built and maintained by Preet*
 *All services self-hosted. No cloud subscriptions outside of Cloudflare.*
