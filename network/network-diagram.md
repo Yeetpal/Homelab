@@ -1,3 +1,6 @@
+# Network Diagram
+```mermaid
+
 graph LR
     classDef hardware fill:#fce4ec,stroke:#c62828,stroke-width:1.5px,color:#7f1d1d
     classDef service  fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
