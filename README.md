@@ -65,6 +65,12 @@ Ubiquiti Switch Ultra 210W
 - Pi-hole acts as the **primary DNS resolver** for the network, providing ad blocking and local DNS record management- VLANs are not currently implemented as the network is shared with other users on premises; network segmentation has been consciously deferred to avoid interference with devices outside my control
 
 ---
+ 
+## Network Diagram
+ 
+> [View interactive network diagram](./network/network-diagram.md)
+ 
+---
 
 ## Hardware
 
