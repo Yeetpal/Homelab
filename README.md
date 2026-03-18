@@ -293,6 +293,45 @@ No driver conflicts encountered running two NVIDIA GPUs of different generations
  
 ---
  
+### ✅ Calibre-Web — 500 Internal Server Error on Launch (Missing Database Columns)
+ 
+**Symptoms:** Calibre-Web throwing a 500 Internal Server Error immediately on load with the following SQLAlchemy errors appearing sequentially:
+- `sqlite3.OperationalError: no such column: books.isbn`
+- `sqlite3.OperationalError: no such column: books.flags`
+ 
+**Diagnosis:** The Calibre library database (`metadata.db`) was created with an older version of Calibre that predates the `isbn` and `flags` columns. The newer version of Calibre-Web expects these columns to exist and fails when querying the books table without them. The database is stored on the NAS and mounted to Ampitheatre via NFS at `/mnt/nas_books`.
+ 
+**Resolution:**
+Added the missing columns directly to the SQLite database in a single session rather than restarting between each fix.
+ 
+1. Opened the database and added both missing columns:
+```bash
+sqlite3 /mnt/nas_books/metadata.db
+```
+```sql
+ALTER TABLE books ADD COLUMN isbn TEXT DEFAULT '';
+ALTER TABLE books ADD COLUMN flags INTEGER NOT NULL DEFAULT 1;
+```
+ 
+2. Verified columns were added successfully:
+```sql
+PRAGMA table_info(books);
+```
+ 
+3. Exited SQLite and restarted the container:
+```sql
+.quit
+```
+```bash
+docker restart calibre-web
+```
+ 
+**Outcome:** Calibre-Web loaded successfully. All books accessible.
+ 
+**Note:** If upgrading Calibre-Web in future causes similar errors, check the SQL query in the traceback for the missing column name and add it with an appropriate default value using the same method.
+ 
+---
+ 
 ### ✅ Pi-hole — NTP Client Unable to Resolve Time Server
  
 **Symptoms:** Pi-hole diagnosis page showing two NTP errors:
