@@ -21,6 +21,7 @@
 - [Storage](#storage)
 - [Access & Security Model](#access--security-model)
 - [Physical Build](#physical-build)
+- [Troubleshooting & Problem Solving](#troubleshooting--problem-solving)
 - [Future Plans](#future-plans)
  
 ---
@@ -63,7 +64,8 @@ Ubiquiti Switch Ultra 210W
  
 - The Virgin Hub 5 operates in **modem mode**, handing full routing responsibilities to the Ubiquiti Gateway Ultra
 - The NETGEAR R8000 operates as a **pure access point** — routing and DHCP are handled upstream by the Ubiquiti gateway
-- Pi-hole acts as the **primary DNS resolver** for the network, providing ad blocking and local DNS record management- VLANs are not currently implemented as the network is shared with other users on premises; network segmentation has been consciously deferred to avoid interference with devices outside my control
+- Pi-hole acts as the **primary DNS resolver** for the network, providing ad blocking and local DNS record management
+- VLANs are not currently implemented as the network is shared with other users on premises; network segmentation has been consciously deferred to avoid interference with devices outside my control
  
 ---
  
@@ -362,6 +364,7 @@ sudo systemctl restart systemd-timesyncd
 - [ ] Host personal website on The-Agora — built in a **Y2K / IndieWeb aesthetic**
 - [ ] Implement VLAN segmentation once network ownership situation changes
 - [ ] Add monitoring stack (considering Grafana + Prometheus or Uptime Kuma)
+- [ ] Design and 3D print rack tray for Raspberry Pi 2B
 - [ ] Document breakages and resolutions as they occur
  
 ---
