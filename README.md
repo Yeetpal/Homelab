@@ -278,18 +278,7 @@ Real issues encountered during the build and operation of this lab. Documented h
 **Resolution:** Identified and deleted the specific problematic posts from Discord prior to re-running the import. Migration completed successfully after removal.
  
 **Outcome:** Full chat history migrated to Matrix Synapse. A targeted deletion of edge-case content was the most pragmatic resolution given the importer's lack of error handling for malformed messages.
- 
----
- 
-### ✅ NUC RAM Upgrade — 32GB → 64GB DDR4
- 
-No issues encountered. Proxmox recognised the full 64GB without BIOS changes or instability. VM resource allocation updated post-upgrade.
- 
----
- 
-### ✅ CUDA Multi-GPU Setup — RTX 3080 + GTX 1070 Ti
- 
-No driver conflicts encountered running two NVIDIA GPUs of different generations under Ubuntu 24.04. Both cards operate on CUDA 12.6 within their respective containers without interference.
+
  
 ---
  
