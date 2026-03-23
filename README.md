@@ -1,7 +1,7 @@
 # 🖥️ Homelab
  
 > A self-hosted infrastructure stack built for media, communication, AI inference, and game server hosting. Running on consumer and prosumer hardware with enterprise-adjacent practices.
- 
+
 ![Proxmox](https://img.shields.io/badge/Proxmox-E57000?style=flat&logo=proxmox&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=flat&logo=ubuntu&logoColor=white)
@@ -170,13 +170,22 @@ The NUC runs three Ubuntu Server VMs, each provisioned for a specific workload. 
 | Service | Purpose |
 |---|---|
 | Matrix Synapse | Federated messaging server |
+| PostgreSQL 15 | Database backend for Synapse |
 | Cloudflare Tunnel | External access without open ports |
-| Cloudflare Realtime | WebRTC relay for voice/video calls |
+| Cloudflare Realtime TURN | WebRTC relay for voice/video calls |
+| matrix-turnify | Bridges Cloudflare Realtime TURN credentials into Synapse |
+| synapse-admin | Web dashboard for server administration (internal only) |
+| mautrix-discord | Discord bridge — mirrors Discord channels into Matrix rooms |
  
 **Access model:**
 - Matrix Synapse is exposed externally via **Cloudflare Tunnel**, removing the need to open ports on the firewall
-- **Cloudflare Realtime** handles WebRTC for voice and video call relay
+- **Cloudflare Realtime** handles WebRTC TURN relay for voice and video calls via matrix-turnify
+- Federation is handled via a **Cloudflare Worker** serving `.well-known/matrix/server` and `.well-known/matrix/client` on port 443
+- Element Call (MatrixRTC) enabled via `rtc_foci` block in the Cloudflare Worker response
+- synapse-admin is internal only
 - Future: personal website to be hosted on this VM
+ 
+> Full setup guide including all phases of configuration, troubleshooting, and the Discord bridge: [matrix-server-guide.md](./services/the-agora/matrix-server-guide.md)
  
 ---
  
@@ -260,16 +269,41 @@ Real issues encountered during the build and operation of this lab. Documented h
  
 ---
  
-### 🟡 Matrix Synapse — Green Flicker on Screen Share / Webcam (Ongoing)
+### ✅ Matrix Synapse — Green Flicker on Screen Share / Webcam
  
-**Symptoms:** Users connecting from within the local network experience a green flickering artefact when screen sharing or using a webcam during calls. Users connecting externally via Cloudflare Realtime do not experience the issue.
+**Symptoms:** Users connecting from within the local network experienced a green flickering artefact when screen sharing or using a webcam during calls. Users connecting externally via Cloudflare Realtime did not experience the issue.
  
-**Diagnosis so far:** The external path works correctly because Cloudflare Realtime handles WebRTC relay cleanly. The local network path likely bypasses the TURN relay and attempts a direct peer connection, which is falling back incorrectly — possibly a STUN/TURN misconfiguration causing the local media path to behave differently from the relayed external path.
+**Diagnosis:** The root cause was a missing MatrixRTC focus configuration. Without an `rtc_foci` block in the `.well-known/matrix/client` response, clients were not being directed to use the Cloudflare Realtime TURN relay for local WebRTC paths, causing them to fall back to a broken direct peer connection.
  
-**Status:** Under active investigation. Suspected cause is local WebRTC path not being correctly routed through the Cloudflare Realtime relay when both clients are on the same LAN.
+**Resolution:** Resolved as part of enabling Element Call (Phase 9 of the Matrix server setup). The Cloudflare Worker serving `.well-known/matrix/client` was updated to include the `rtc_foci` block pointing to the LiveKit service URL. Once the Cloudflare cache was purged and Element's local cache cleared, all calls — both local and external — routed correctly through the TURN relay.
+ 
+**Outcome:** Green flicker resolved on both local network and external connections. Screen sharing and webcam now work correctly for all users.
+ 
+> See [matrix-server-guide.md](./services/the-agora/matrix-server-guide.md) Phase 9 for full resolution steps.
  
 ---
  
+### ✅ Matrix Synapse — MISSING_MATRIX_RTC_FOCUS Error (Element Call Not Working)
+
+**Symptoms:** Attempting to start a call in a Matrix client returns:
+- `Call is not supported — The server is not configured to work with Element Call`
+- Error code: `MISSING_MATRIX_RTC_FOCUS`
+
+**Diagnosis:** Newer Matrix clients (Element, Commet) require the server to advertise a MatrixRTC focus server via the `org.matrix.msc4143.rtc_foci` block in the `.well-known/matrix/client` response. Without this, clients do not know where to route calls and refuse to connect.
+
+Because the setup uses a **Cloudflare Worker** to serve federation endpoints, editing `homeserver.yaml` alone has no effect — the Worker intercepts `.well-known` requests before they reach Synapse.
+
+**Resolution:**
+Updated the Cloudflare Worker script to include the `rtc_foci` block in the `.well-known/matrix/client` response, pointing to `https://jwt.call.element.io` as the LiveKit service URL. Then purged the Cloudflare cache for the `.well-known/matrix/client` URL to force the change to propagate immediately.
+
+After server-side fix, Element's local cache also required clearing — the in-app clear cache button was insufficient, requiring manual deletion of the Element app data folder.
+
+**Outcome:** Element Call and MatrixRTC voice/video calls working correctly. This fix also resolved the pre-existing green screen flicker issue on local network calls.
+
+> See [matrix-server-guide.md](./services/the-agora/matrix-server-guide.md) Phase 9 for full resolution steps.
+
+---
+
 ### ✅ Pterodactyl — SSL Auto-Renewal Not Covered by Setup Script
  
 **Symptoms:** The community setup script for Pterodactyl configured Nginx and Let's Encrypt correctly for initial deployment but did not include automatic SSL certificate renewal, which would cause certificates to expire without intervention.
@@ -377,6 +411,10 @@ sudo systemctl restart systemd-timesyncd
 - [ ] Document breakages and resolutions as they occur
  
 ---
+ 
+*Built and maintained by Preet*
+*All services self-hosted. No cloud subscriptions outside of Cloudflare.*
+
  
 *Built and maintained by Preet*
 *All services self-hosted. No cloud subscriptions outside of Cloudflare.*
