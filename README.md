@@ -414,7 +414,3 @@ sudo systemctl restart systemd-timesyncd
  
 *Built and maintained by Preet*
 *All services self-hosted. No cloud subscriptions outside of Cloudflare.*
-
- 
-*Built and maintained by Preet*
-*All services self-hosted. No cloud subscriptions outside of Cloudflare.*
