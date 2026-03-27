@@ -64,7 +64,7 @@ Ubiquiti Gateway Ultra
 Ubiquiti Switch Ultra 210W
     ├── Intel NUC (Proxmox Host)
     ├── Synology DS920+ NAS
-    ├── Raspberry Pi 4 (Pi-hole DNS)
+    ├── Raspberry Pi 2B (Pi-hole DNS)
     └── NETGEAR R8000 Nighthawk X6 (Access Point Mode)
             └── Obsidian Tower / Custom Desktop (Ethernet)
 ```
